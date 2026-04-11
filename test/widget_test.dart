@@ -8,23 +8,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:news_app/main.dart';
+import 'package:news_app/core/di/injection.dart';
+import 'package:news_app/news_app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  setUp(configureDependencies);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  tearDown(() async {
+    await getIt.reset();
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('Home shows News tab and bottom navigation', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const NewsApp());
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('News'), findsWidgets);
+    expect(find.byType(NavigationBar), findsOneWidget);
   });
 }
