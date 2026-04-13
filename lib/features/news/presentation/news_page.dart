@@ -4,7 +4,7 @@ import 'package:news_app/core/di/injection.dart';
 import 'package:news_app/domain/models/news_article.dart';
 import 'package:news_app/domain/repositories/i_news_article_repository.dart';
 import 'package:news_app/features/news/cubit/news_cubit.dart';
-import 'package:news_app/features/news/presentation/news_article_detail_page.dart';
+import 'package:news_app/features/article_details/presentation/article_details_page.dart';
 import 'package:news_app/features/news/presentation/news_page_content.dart';
 import 'package:news_app/features/news/presentation/news_routes.dart';
 
@@ -48,7 +48,7 @@ class _NewsPageState extends State<NewsPage> {
               final article = settings.arguments as NewsArticle;
               return MaterialPageRoute<void>(
                 settings: settings,
-                builder: (_) => NewsArticleDetailPage(article: article),
+                builder: (_) => ArticleDetailsPage(article: article),
               );
             default:
               return null;

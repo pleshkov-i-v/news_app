@@ -8,6 +8,4 @@ abstract interface class IFavoriteNewsRepository {
   Future<void> addFavorite(NewsArticle article);
 
   Future<void> removeFavorite(String articleUrl);
-
-  Future<void> toggleFavorite(NewsArticle article);
 }
