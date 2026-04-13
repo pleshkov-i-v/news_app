@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:news_app/domain/models/news_article.dart';
 import 'package:news_app/features/news/presentation/news_routes.dart';
 import 'package:news_app/features/shared/shadow_container.dart';
@@ -22,9 +23,7 @@ class NewsArticleCard extends StatelessWidget {
           if (onArticleTap != null) {
             onArticleTap!(article);
           } else {
-            Navigator.of(
-              context,
-            ).pushNamed(NewsRoutes.articleDetail, arguments: article);
+            context.push(NewsRoutes.articleDetail, extra: article);
           }
         },
         child: ShadowContainer(

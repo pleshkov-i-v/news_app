@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:news_app/core/di/injection.dart';
-import 'package:news_app/domain/models/news_article.dart';
 import 'package:news_app/domain/repositories/i_news_article_repository.dart';
 import 'package:news_app/features/news/cubit/news_cubit.dart';
-import 'package:news_app/features/article_details/presentation/article_details_page.dart';
 import 'package:news_app/features/news/presentation/news_page_content.dart';
-import 'package:news_app/features/news/presentation/news_routes.dart';
 
 class NewsPage extends StatefulWidget {
   const NewsPage({super.key});
@@ -35,26 +32,7 @@ class _NewsPageState extends State<NewsPage> {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: cubit,
-      child: Navigator(
-        initialRoute: NewsRoutes.list,
-        onGenerateRoute: (settings) {
-          switch (settings.name) {
-            case NewsRoutes.list:
-              return MaterialPageRoute<void>(
-                settings: settings,
-                builder: (_) => const NewsPageContent(),
-              );
-            case NewsRoutes.articleDetail:
-              final article = settings.arguments as NewsArticle;
-              return MaterialPageRoute<void>(
-                settings: settings,
-                builder: (_) => ArticleDetailsPage(article: article),
-              );
-            default:
-              return null;
-          }
-        },
-      ),
+      child: const NewsPageContent(),
     );
   }
 }

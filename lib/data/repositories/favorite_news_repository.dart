@@ -1,96 +1,83 @@
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:news_app/domain/models/news_article.dart';
 import 'package:news_app/domain/repositories/i_favorite_news_repository.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:news_app/storage/favorite_articles/favorite_article_dto.dart';
+import 'package:news_app/storage/favorite_articles/shared_preferences_favorites_storage.dart';
 
 class FavoriteNewsRepository implements IFavoriteNewsRepository {
-  FavoriteNewsRepository();
+  FavoriteNewsRepository({required SharedPreferencesFavoritesStorage storage})
+    : _storage = storage;
 
-  static const _storageKey = 'favorite_news_articles_v1';
-
-  Future<SharedPreferences> _prefs() => SharedPreferences.getInstance();
-
-  Future<List<Map<String, dynamic>>> _readMaps() async {
-    final raw = (await _prefs()).getString(_storageKey);
-    if (raw == null || raw.isEmpty) {
-      return [];
-    }
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! List) {
-        return [];
-      }
-      return decoded
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    } catch (_) {
-      return [];
-    }
-  }
-
-  Future<void> _writeMaps(List<Map<String, dynamic>> maps) async {
-    await (await _prefs()).setString(_storageKey, jsonEncode(maps));
-  }
-
-  NewsArticle _articleFromMap(Map<String, dynamic> m) {
-    return NewsArticle(
-      source: m['source'] as String,
-      title: m['title'] as String,
-      description: m['description'] as String?,
-      url: m['url'] as String,
-      imageUrl: m['imageUrl'] as String?,
-      publishedAt: m['publishedAt'] as String,
-      content: m['content'] as String,
-    );
-  }
-
-  Map<String, dynamic> _articleToMap(NewsArticle article) {
-    return {
-      'source': article.source,
-      'title': article.title,
-      'description': article.description,
-      'url': article.url,
-      'imageUrl': article.imageUrl,
-      'publishedAt': article.publishedAt,
-      'content': article.content,
-    };
-  }
-
+  final SharedPreferencesFavoritesStorage _storage;
   @override
-  Future<List<NewsArticle>> getFavoriteArticles() async {
-    final maps = await _readMaps();
-    return maps.map(_articleFromMap).toList();
+  Future<Iterable<NewsArticle>> getFavoriteArticles() async {
+    final items = await _storage.getItems();
+    return items.toNewsArticles();
   }
 
   @override
   Future<bool> isFavorite(String articleUrl) async {
-    final maps = await _readMaps();
-    return maps.any((m) => m['url'] == articleUrl);
+    final items = await _storage.getItems();
+    return items.any((e) => e.url == articleUrl);
   }
 
   @override
   Future<void> addFavorite(NewsArticle article) async {
-    final maps = await _readMaps();
-    maps.removeWhere((m) => m['url'] == article.url);
-    maps.add(_articleToMap(article));
-    await _writeMaps(maps);
+    final items = await _storage.getItems();
+    final item = article.toFavoriteArticleDto();
+    final updatedList = [...items, item];
+    await _storage.saveItems(updatedList);
+    _favoriteArticlesChangedController.add(updatedList.toNewsArticles());
   }
 
   @override
   Future<void> removeFavorite(String articleUrl) async {
-    final maps = await _readMaps();
-    maps.removeWhere((m) => m['url'] == articleUrl);
-    await _writeMaps(maps);
+    final items = await _storage.getItems();
+    final updatedList = items.where((e) => e.url != articleUrl).toList();
+    await _storage.saveItems(updatedList);
+    _favoriteArticlesChangedController.add(updatedList.toNewsArticles());
   }
 
+  final StreamController<Iterable<NewsArticle>>
+  _favoriteArticlesChangedController =
+      StreamController<Iterable<NewsArticle>>();
+
   @override
-  Future<void> toggleFavorite(NewsArticle article) async {
-    if (await isFavorite(article.url)) {
-      await removeFavorite(article.url);
-    } else {
-      await addFavorite(article);
-    }
+  Stream<Iterable<NewsArticle>> get favoriteArticlesChangedStream =>
+      _favoriteArticlesChangedController.stream.asBroadcastStream();
+}
+
+extension on FavoriteArticleDto {
+  NewsArticle toNewsArticle() {
+    return NewsArticle(
+      source: source,
+      title: title,
+      description: description,
+      url: url,
+      imageUrl: imageUrl,
+      publishedAt: publishedAt,
+      content: content,
+    );
+  }
+}
+
+extension on NewsArticle {
+  FavoriteArticleDto toFavoriteArticleDto() {
+    return FavoriteArticleDto(
+      source: source,
+      title: title,
+      description: description,
+      url: url,
+      imageUrl: imageUrl,
+      publishedAt: publishedAt,
+      content: content,
+    );
+  }
+}
+
+extension on Iterable<FavoriteArticleDto> {
+  Iterable<NewsArticle> toNewsArticles() {
+    return map((e) => e.toNewsArticle());
   }
 }

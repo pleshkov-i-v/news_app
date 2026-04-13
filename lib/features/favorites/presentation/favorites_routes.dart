@@ -1,4 +1,4 @@
 abstract final class FavoritesRoutes {
-  static const list = '/';
+  static const list = '/favorites';
   static const articleDetail = '/favorites/article';
 }

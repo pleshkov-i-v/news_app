@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:news_app/features/favorites/cubit/favorites_cubit.dart';
 import 'package:news_app/features/favorites/cubit/favorites_state.dart';
 import 'package:news_app/features/favorites/presentation/favorites_routes.dart';
@@ -50,13 +51,10 @@ class FavoritesPageContent extends StatelessWidget {
                             return NewsArticleCard(
                               article: article,
                               onArticleTap: (a) async {
-                                await Navigator.of(context).pushNamed(
+                                await context.push(
                                   FavoritesRoutes.articleDetail,
-                                  arguments: a,
+                                  extra: a,
                                 );
-                                if (context.mounted) {
-                                  context.read<FavoritesCubit>().load();
-                                }
                               },
                             );
                           },
